@@ -6,7 +6,7 @@ You may use it if you want to perform some kind of tabulation or centering of te
 🔴 <span style="color:red">**NOTE**</span> 🔴 The code won't work properly for Windows Terminal releases before version 1.22.  
 <br>
 *Why is this?*  
-Recently, Windows Terminal made a huge step towards better Unicode support and Unicode correctness. This is something that I can't appreciate enough. A series of major "minor refactorings" (© @lhecker 😄) have been made to achieve that.  
+Recently, Windows Terminal made a huge step towards better Unicode support and Unicode correctness. This is something that I can't appreciate enough. A series of major "minor refactorings" (© [@lhecker](https://github.com/lhecker) 😄) have been made to achieve that.  
 The name `wtswidth` intentionally sounds similar to the POSIX function `wcswidth()`. However, measuring the display width of a string in Windows Terminal is now not only based on the sum of expected widths of codepoints like in `wcswidth()`. The string context is taken into account, too. This leads to a far better measuring of clustered graphemes.
 <br>
   
