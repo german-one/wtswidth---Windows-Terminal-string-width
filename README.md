@@ -16,14 +16,14 @@ Let's just perform some comparisons:
 | **string** | **C syntax** | `wtswidth` **(this)** | `wcswidth()` **(wchar.h GCC)** |
 | :--- | :--- | :---: | :---: |
 | `abc` | L"abc" | 3 | 3 ✔ |
-| `हिन्दी` | L"\u0939\u093F\u0928\u094D\u0926\u0940" | 3 | 5 ❌ |
+| `हिन्दी` | L"\u0939\u093F\u0928\u094D\u0926\u0940" | 4 | 5 ❌ |
 | `😄` | L"\U0001F604" | 2 | 2 ✔ |
 | `🙋🏻‍♂️` | L"\U0001F64B\U0001F3FB\u200D\u2642\uFE0F" | 2 | 5 ❌ |
 | `❤️` | L"\u2764\uFE0F" | 2 | 1 ❌ |
 
 However, this does not quite demonstrate how it looks like in the terminal.  
-That's a screenshot of a test script in Windows Terminal Canary Version 1.22.2291.0:  
-![test output](./screenshot_v1.22.2291.0.png)  
+That's a screenshot of a test script in Windows Terminal Canary Version 1.23.2421.0:  
+![test output](./Screenshot_v1.23.2421.0.png)  
 As you can see, the measured width matches the displayed width of the strings each.  
 I doubt it's perfect. But due to the lack of any standardization we can't even evaluate how close to perfection it actually is. At least a proposal was already submitted to the UTC (see 
 [Proper Complex Script Support in Text Terminals.](https://www.unicode.org/L2/L2023/23107-terminal-suppt.pdf)) of how this should be ideally implemented.  

@@ -1,5 +1,5 @@
-#ifndef HEADER_WTSWIDTH_3BD91CCF_2635_44D1_9D88_5114B59F8255_1_0
-#define HEADER_WTSWIDTH_3BD91CCF_2635_44D1_9D88_5114B59F8255_1_0
+#ifndef HEADER_WTSWIDTH_3BD91CCF_2635_44D1_9D88_5114B59F8255_1_1
+#define HEADER_WTSWIDTH_3BD91CCF_2635_44D1_9D88_5114B59F8255_1_1
 
 /// @copyright Copyright (c) 2024 Steffen Illhardt,
 ///            Licensed under the MIT license
@@ -8,7 +8,7 @@
 /// @brief     Interface for determining the number of code units that make up a
 ///            grapheme cluster and for counting the number of columns required
 ///            to represent a string in the Windows Terminal.
-/// @version   1.0
+/// @version   1.1
 /// @author    Steffen Illhardt
 /// @date      2024
 /// @pre       Requires compiler support for at least C11.
