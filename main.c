@@ -9,7 +9,7 @@
 static inline void help()
 {
   static const char msg[] =
-    "* 'wtswidth' - Windows Terminal string width, version 1.1. *\n"
+    "* 'wtswidth' - Windows Terminal string width, version 1.2. *\n"
     "Count the number of columns required to represent strings in the Windows Terminal.\n"
     "Write the widths as list of numbers of character cells the passed strings occupy.\n"
     "In case the wrong syntax is used, this message is displayed and 1 is returned.\n\n"
