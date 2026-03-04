@@ -1,4 +1,4 @@
-// Copyright (c) 2024 Steffen Illhardt,
+// Copyright (c) 2024-2026 Steffen Illhardt,
 // Licensed under the MIT license ( https://opensource.org/license/mit/ ).
 //
 // However, I don't claim any credits because the essential components of this
@@ -37,19 +37,19 @@
 //  to the beginning of the lookup table and replace the character class (zero
 //  values) for ASCII bytes.
 
-#if !defined(__STDC_VERSION__) || (defined(__STDC_VERSION__) && (__STDC_VERSION__) < 202311L)
+#if !defined(__STDC_VERSION__) || __STDC_VERSION__ < 202311L
 #  include <stdbool.h>
 #endif
-#include <stddef.h>
 #include <stdint.h>
 #include "wtswidth.h"
 
-#if !defined(HEADER_WTSWIDTH_3BD91CCF_2635_44D1_9D88_5114B59F8255_1_2)
+#if !defined(HEADER_WTSWIDTH_3BD91CCF_2635_44D1_9D88_5114B59F8255_1_3)
 #  error "wtswidth version mismatch source <=> header"
 #elif defined(__GNUC__) || defined(__clang__)
 #  pragma GCC diagnostic push
 #  pragma GCC diagnostic ignored "-Wdeclaration-after-statement" // C11 is required anyway, no issue here
 #  if defined(__clang__)
+#    pragma clang diagnostic ignored "-Wc++-keyword" // uchar.h for char16_t and char32_t is only conditionally included anyway
 #    pragma clang diagnostic ignored "-Wpre-c23-compat" // bool is a type since C23, it was a macro before
 #    pragma clang diagnostic ignored "-Wunsafe-buffer-usage" // tons of pointer stuff in this code because it's C, not C++; so ... shh clang!
 #  endif
@@ -162,6 +162,13 @@ enum charSizes
   char8size = sizeof(uint8_t),
   char16size = sizeof(char16_t)
 };
+
+static inline bool *AmbiguousIsWide(void)
+{
+  // only a bool (unlike wtsambw_t elsewhere) makes some compilers finally consider that there are only 2 states: narrow or wide
+  static bool _ambiguousIsWide = false;
+  return &_ambiguousIsWide;
+}
 
 // NOTE: Comments in the Terminal derived code are those of the original author of the C++ code that this is based on.
 /* *** begin of Windows Terminal derived code *** */
@@ -908,7 +915,6 @@ static inline const char16_t *utf16NextOrFFFD(const char16_t *it, const char16_t
 // but takes some mild liberties. Returns false if the end of the string was reached. Updates `s` with the cluster.
 static inline bool GraphemeNext(GraphemeState *const s, const void *const str, const void *const end, const int charSize)
 {
-  static const int _ambiguousWidth = 1;
   const void *clusterBeg = (const uint8_t *)(s->beg) + s->len * charSize;
   int width = s->width;
   int state = s->_state;
@@ -937,9 +943,9 @@ static inline bool GraphemeNext(GraphemeState *const s, const void *const str, c
       goto fetchNext;
 
     if (charSize == char8size)
-      clusterEnd = utf8NextOrFFFD(clusterEnd, end, &cp);
+      clusterEnd = utf8NextOrFFFD((const uint8_t *)clusterEnd, (const uint8_t *)end, &cp);
     else
-      clusterEnd = utf16NextOrFFFD(clusterEnd, end, &cp);
+      clusterEnd = utf16NextOrFFFD((const char16_t *)clusterEnd, (const char16_t *)end, &cp);
 
     lead = ucdLookup(cp);
     width = 0;
@@ -950,7 +956,7 @@ static inline bool GraphemeNext(GraphemeState *const s, const void *const str, c
       {
         int w = ucdToCharacterWidth(lead);
         if (w == 3)
-          w = _ambiguousWidth;
+          w = *AmbiguousIsWide() ? 2 : 1;
 
         // U+FE0F Variation Selector-16 is used to turn unqualified Emojis into qualified ones.
         // By convention, this turns them from being ambiguous width (= narrow) into wide ones.
@@ -969,9 +975,9 @@ static inline bool GraphemeNext(GraphemeState *const s, const void *const str, c
 
     fetchNext:
       if (charSize == char8size)
-        clusterEndNext = utf8NextOrFFFD(clusterEnd, end, &cp);
+        clusterEndNext = utf8NextOrFFFD((const uint8_t *)clusterEnd, (const uint8_t *)end, &cp);
       else
-        clusterEndNext = utf16NextOrFFFD(clusterEnd, end, &cp);
+        clusterEndNext = utf16NextOrFFFD((const char16_t *)clusterEnd, (const char16_t *)end, &cp);
 
       const int trail = ucdLookup(cp);
 
@@ -1003,7 +1009,17 @@ static inline bool GraphemeNext(GraphemeState *const s, const void *const str, c
 
 /* *** end of Windows Terminal derived code *** */
 
-int wts8clusterlen(const char *str, size_t len, int *pWidth)
+wtsambw_t wtsgetambwidth(void)
+{
+  return *AmbiguousIsWide() ? wide : narrow;
+}
+
+void wtssetambwidth(wtsambw_t ambWidth)
+{
+  *AmbiguousIsWide() = ambWidth == wide; // fall back to narrow if out of enum boundaries
+}
+
+int wts8clusterlen(const char *str, int len, int *pWidth)
 {
   GraphemeState state = { 0 };
   const uint8_t *const end = (const uint8_t *)str + len;
@@ -1014,7 +1030,7 @@ int wts8clusterlen(const char *str, size_t len, int *pWidth)
   return state.len;
 }
 
-int wts16clusterlen(const char16_t *str, size_t len, int *pWidth)
+int wts16clusterlen(const char16_t *str, int len, int *pWidth)
 {
   GraphemeState state = { 0 };
   const char16_t *const end = str + len;
@@ -1025,7 +1041,7 @@ int wts16clusterlen(const char16_t *str, size_t len, int *pWidth)
   return state.len;
 }
 
-int wts8width(const char *str, size_t len)
+int wts8width(const char *str, int len)
 {
   int totalWidth = 0;
   GraphemeState state = { 0 };
@@ -1040,7 +1056,7 @@ int wts8width(const char *str, size_t len)
   return totalWidth;
 }
 
-int wts16width(const char16_t *str, size_t len)
+int wts16width(const char16_t *str, int len)
 {
   int totalWidth = 0;
   GraphemeState state = { 0 };

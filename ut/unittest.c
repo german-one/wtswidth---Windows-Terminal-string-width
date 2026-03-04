@@ -35,13 +35,13 @@
 
 // Determine the length (number of code units) of a string of char16_t. Terminating null not counted.
 // Function wcslen() only works on Windows for this purpose as the size of a wchar_t is bigger than 16 bits everywhere else.
-static inline size_t c16slen(const char16_t *const str)
+static inline int c16slen(const char16_t *const str)
 {
   const char16_t *it = str;
   while (*it)
     ++it;
 
-  return (size_t)(it - str);
+  return (int)(it - str);
 }
 
 // Test all 4 functions declared in wtswidth.h.
@@ -49,9 +49,9 @@ static inline size_t c16slen(const char16_t *const str)
 static inline int unittest(const char *const u8str, const char16_t *const u16str)
 {
   // ~~~ UTF-8 ~~~
-  const size_t u8len = strlen(u8str);
+  const int u8len = (int)strlen(u8str);
   // wts8clusterlen()
-  size_t rem8len = u8len;
+  int rem8len = u8len;
   int u8sum = 0;
   for (const char *it8 = u8str; *it8;)
   {
@@ -59,15 +59,15 @@ static inline int unittest(const char *const u8str, const char16_t *const u16str
     const int len = wts8clusterlen(it8, rem8len, &width);
     it8 += len;
     u8sum += width;
-    rem8len -= (size_t)len;
+    rem8len -= len;
   }
   // wts8width()
   const int u8width = wts8width(u8str, u8len);
 
   // ~~~ UTF-16 ~~~
-  const size_t u16len = c16slen(u16str);
+  const int u16len = c16slen(u16str);
   // wts16clusterlen()
-  size_t rem16len = u16len;
+  int rem16len = u16len;
   int u16sum = 0;
   for (const char16_t *it16 = u16str; *it16;)
   {
@@ -75,7 +75,7 @@ static inline int unittest(const char *const u8str, const char16_t *const u16str
     const int len = wts16clusterlen(it16, rem16len, &width);
     it16 += len;
     u16sum += width;
-    rem16len -= (size_t)len;
+    rem16len -= len;
   }
   // wts16width()
   const int u16width = wts16width(u16str, u16len);
